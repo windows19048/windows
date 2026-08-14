@@ -17,7 +17,6 @@
             font-family: "Segoe UI Variable", system-ui, sans-serif;
             background: #141414;
         }
-        /* 桌面图标 */
         .desktop {
             height: calc(100vh - 48px);
             padding:24px;
@@ -40,7 +39,6 @@
             font-size:42px;
             margin-bottom:8px;
         }
-        /* 任务栏 Win11 */
         .taskbar{
             height:48px;
             background:rgba(248,248,248,0.12);
@@ -88,7 +86,6 @@
             text-align:right;
             font-size:12px;
         }
-        /* 开始菜单 */
         .start-menu{
             width:340px;
             height:440px;
@@ -105,8 +102,6 @@
         .start-menu.show{
             display:block;
         }
-
-        /* ========= Win11窗口动画【修复最小化】 ========= */
         .window{
             width:620px;
             height:440px;
@@ -125,14 +120,12 @@
             opacity:1;
             transform: scale(1);
         }
-        /* Win11最小化：向底部任务栏收缩，落到屏幕最下方 */
         .window.min{
             opacity:0;
             transform: scale(0.25) translateY(100vh);
             visibility: hidden;
             pointer-events:none;
         }
-
         .win-header{
             height:34px;
             background:#ffffff;
@@ -180,13 +173,9 @@
             <div>此电脑</div>
         </div>
     </div>
-
-    <!-- 开始菜单 -->
     <div class="start-menu" id="startMenu">
         <div>应用列表</div>
     </div>
-
-    <!-- 任务栏 -->
     <div class="taskbar">
         <div class="start-btn" onclick="toggleStart()">⌕</div>
         <div class="taskbar-apps" id="taskApps"></div>
@@ -195,9 +184,7 @@
             <div id="yyyymmdd">2026/08/14</div>
         </div>
     </div>
-
     <script>
-        //更新时间
         function updateTime(){
             let d=new Date();
             document.getElementById('hhmm').innerText = d.getHours()+":"+String(d.getMinutes()).padStart(2,'0');
@@ -205,22 +192,16 @@
         }
         setInterval(updateTime,1000);
         updateTime();
-
-        //开始菜单
         function toggleStart(){
-            const sm=document.getElementById("startMenu");
-            sm.classList.toggle("show");
+            document.getElementById("startMenu").classList.toggle("show");
         }
         document.body.addEventListener('click',e=>{
             if(!e.target.matches('.start-btn')){
                 document.getElementById('startMenu').classList.remove('show');
             }
         })
-
         let zIndex=10;
         let winIdCount=0;
-
-        //打开窗口
         function openWindow(type,title){
             winIdCount++;
             const winId="win_"+winIdCount;
@@ -228,18 +209,15 @@
             const win=document.createElement('div');
             win.className="window";
             win.dataset.winid=winId;
-            //原始窗口大小位置，用于最大化还原
             win.dataset.origLeft = (80+Math.random()*140)+"px";
             win.dataset.origTop = (60+Math.random()*110)+"px";
             win.dataset.origW = "620px";
             win.dataset.origH = "440px";
-
             win.style.left=win.dataset.origLeft;
             win.style.top=win.dataset.origTop;
             win.style.width=win.dataset.origW;
             win.style.height=win.dataset.origH;
             win.style.zIndex=zIndex;
-
             let bodyHtml="";
             if(type==="notepad"){
                 bodyHtml=`<textarea style="width:100%;height:100%;border:none;outline:none;font-size:14px;" placeholder="在此输入文字..."></textarea>`;
@@ -250,7 +228,6 @@
                     <div style="margin-top:8px;">本地磁盘 (D:)</div>
                 </div>`;
             }
-
             win.innerHTML=`
                 <div class="win-header">
                     <div class="win-title">${title}</div>
@@ -263,12 +240,7 @@
                 <div class="win-body">${bodyHtml}</div>
             `;
             document.body.appendChild(win);
-            //触发打开动画
-            requestAnimationFrame(()=>{
-                win.classList.add('active');
-            });
-
-            //任务栏按钮
+            requestAnimationFrame(()=>{ win.classList.add('active'); });
             const taskApps=document.getElementById('taskApps');
             const taskBtn=document.createElement('div');
             taskBtn.className="task-app-item";
@@ -276,7 +248,6 @@
             taskBtn.dataset.winid=winId;
             taskBtn.onclick=()=>{
                 if(win.classList.contains('min')){
-                    //恢复窗口：先移除min，再保证active，requestAnimationFrame保证动画执行
                     win.classList.remove('min');
                     requestAnimationFrame(()=>{
                         win.classList.add('active');
@@ -288,32 +259,19 @@
                 }
             }
             taskApps.appendChild(taskBtn);
-
-            //关闭窗口动画
             win.querySelector('.win-close').onclick=()=>{
                 win.classList.remove('active');
                 win.classList.add('min');
-                setTimeout(()=>{
-                    win.remove();
-                    taskBtn.remove();
-                },200);
+                setTimeout(()=>{ win.remove(); taskBtn.remove(); },200);
             };
-
-            //最小化按钮
-            win.querySelector('.win-min').onclick=()=>{
-                win.classList.add('min');
-            }
-
-            //最大化还原
+            win.querySelector('.win-min').onclick=()=>{ win.classList.add('min'); }
             let isMax=false;
             win.querySelector('.win-max').onclick=()=>{
                 if(!isMax){
-                    //最大化，保存旧状态
                     win.dataset.saveLeft=win.style.left;
                     win.dataset.saveTop=win.style.top;
                     win.dataset.saveW=win.style.width;
                     win.dataset.saveH=win.style.height;
-
                     win.style.left="0px";
                     win.style.top="0px";
                     win.style.width="100vw";
@@ -322,7 +280,6 @@
                     isMax=true;
                     win.querySelector('.win-max').innerText="❐";
                 }else{
-                    //还原
                     win.style.left=win.dataset.saveLeft;
                     win.style.top=win.dataset.saveTop;
                     win.style.width=win.dataset.saveW;
@@ -332,16 +289,11 @@
                     win.querySelector('.win-max').innerText="□";
                 }
             }
-
-            //置顶
             win.querySelector('.win-header').onmousedown=()=>{
-                zIndex++;win.style.zIndex=zIndex;
+                zIndex++; win.style.zIndex=zIndex;
             }
-            //拖拽窗口（最大化状态禁止拖拽）
             dragWindow(win,win.querySelector('.win-header'),()=>isMax);
         }
-
-        //拖拽逻辑，最大化时禁止拖拽
         function dragWindow(win,header,getIsMax){
             let dx,dy,isDrag=false;
             header.onmousedown=e=>{

@@ -53,6 +53,13 @@ body{height:100vh;overflow:hidden;background:url('https://img2.baidu.com/it/u=12
 .win-btn.close:hover{background:#e81123;color:#fff;}
 .window-content{height:calc(100% - 36px);padding:12px;color:#eee;overflow:auto;}
 
+/* 浏览器内部样式 */
+.browser-toolbar{display:flex;gap:6px;align-items:center;padding:6px 8px;background:#272727;}
+.browser-nav{display:flex;gap:4px;}
+.browser-nav button{width:28px;height:28px;background:#383838;border:none;color:#fff;border-radius:4px;cursor:pointer;}
+.browser-url{flex:1;padding:6px 10px;background:#383838;border:none;border-radius:4px;color:#fff;outline:none;}
+#browser-frame{width:100%;height:calc(100% - 42px);border:none;background:#fff;}
+
 /* 右键菜单 淡入动画 */
 .rightmenu{position:fixed;width:200px;background:rgba(20,20,20,0.85);backdrop-filter:blur(10px);border-radius:6px;padding:6px;opacity:0;transform:scale(0.96);pointer-events:none;transition: all 0.15s ease;z-index:1000;}
 .rightmenu.open{opacity:1;transform:scale(1);pointer-events:auto;}
@@ -70,6 +77,10 @@ body{height:100vh;overflow:hidden;background:url('https://img2.baidu.com/it/u=12
     <img src="https://cdn-icons-png.flaticon.com/512/2933/2933822.png">
     <span>记事本</span>
 </div>
+<div class="desktop-icon" style="top:230px;left:30px;" ondblclick="openWindow('edge','Edge浏览器')">
+    <img src="https://cdn-icons-png.flaticon.com/512/1051/1051271.png">
+    <span>Edge浏览器</span>
+</div>
 
 <!-- 开始菜单 -->
 <div class="start-menu" id="startMenu">
@@ -80,6 +91,9 @@ body{height:100vh;overflow:hidden;background:url('https://img2.baidu.com/it/u=12
         </div>
         <div class="desktop-icon" onclick="openWindow('notepad','记事本')">
             <img src="https://cdn-icons-png.flaticon.com/512/2933/2933822.png"><span>记事本</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('edge','Edge浏览器')">
+            <img src="https://cdn-icons-png.flaticon.com/512/1051/1051271.png"><span>Edge浏览器</span>
         </div>
     </div>
 </div>
@@ -108,6 +122,29 @@ body{height:100vh;overflow:hidden;background:url('https://img2.baidu.com/it/u=12
     </div>
     <div class="window-content">
         <textarea style="width:100%;height:100%;background:#111;color:#fff;border:none;outline:none;font-size:14px;" placeholder="在此输入文字..."></textarea>
+    </div>
+</div>
+
+<!-- Edge浏览器窗口 -->
+<div class="window" id="win-edge">
+    <div class="window-header" onmousedown="dragWindow(event,'win-edge')">
+        <div class="window-title">Edge浏览器</div>
+        <div class="window-controls">
+            <div class="win-btn" onclick="minWindow('win-edge')">−</div>
+            <div class="win-btn" onclick="maxWindow('win-edge')">□</div>
+            <div class="win-btn close" onclick="closeWindow('win-edge')">×</div>
+        </div>
+    </div>
+    <div class="window-content" style="padding:0;">
+        <div class="browser-toolbar">
+            <div class="browser-nav">
+                <button onclick="browserBack()">←</button>
+                <button onclick="browserForward()">→</button>
+                <button onclick="browserReload()">⟳</button>
+            </div>
+            <input class="browser-url" id="browserUrl" value="https://www.bing.com" placeholder="输入网址" onkeydown="if(event.key==='Enter')browserGo()">
+        </div>
+        <iframe id="browser-frame" src="https://www.bing.com"></iframe>
     </div>
 </div>
 
@@ -141,16 +178,37 @@ updateClock();
 const startMenu = document.getElementById('startMenu');
 let zIndex = 10;
 const winState = {};
-// 记录窗口名称映射
+// 窗口名称映射（新增edge浏览器）
 const winNameMap = {
     "win-explorer":"文件资源管理器",
-    "win-notepad":"记事本"
+    "win-notepad":"记事本",
+    "win-edge":"Edge浏览器"
 };
 const taskbarCenter = document.getElementById('taskbarCenter');
 
+// 浏览器控制函数
+function browserGo(){
+    const urlInput = document.getElementById('browserUrl');
+    const frame = document.getElementById('browser-frame');
+    let url = urlInput.value.trim();
+    if(!url.startsWith("http")) url = "https://" + url;
+    frame.src = url;
+}
+function browserBack(){
+    const frame = document.getElementById('browser-frame');
+    try{frame.contentWindow.history.back()}catch(e){}
+}
+function browserForward(){
+    const frame = document.getElementById('browser-frame');
+    try{frame.contentWindow.history.forward()}catch(e){}
+}
+function browserReload(){
+    const frame = document.getElementById('browser-frame');
+    frame.src = frame.src;
+}
+
 // 刷新任务栏应用按钮
 function refreshTaskbarApps(){
-    // 保留开始按钮，清空其他
     const startBtn = taskbarCenter.querySelector('.taskbar-btn');
     taskbarCenter.innerHTML = "";
     taskbarCenter.appendChild(startBtn);

@@ -105,7 +105,8 @@
         .start-menu.show{
             display:block;
         }
-        /* ========= Win11窗口动画 修复版 ========= */
+
+        /* ========= Win11窗口动画【修复最小化】 ========= */
         .window{
             width:620px;
             height:440px;
@@ -116,19 +117,22 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.35);
             opacity:0;
             transform: scale(0.92);
-            /* 修复：标准贝塞尔曲线，Win11减速动效 */
             transition: 200ms cubic-bezier(0, 0, 0, 1);
+            will-change: transform, opacity;
+            visibility: visible;
         }
         .window.active{
             opacity:1;
             transform: scale(1);
         }
-        /*最小化：收缩+向下偏移 */
+        /* Win11最小化：向底部任务栏收缩，落到屏幕最下方 */
         .window.min{
             opacity:0;
-            transform: scale(0.75) translateY(40px);
+            transform: scale(0.25) translateY(100vh);
+            visibility: hidden;
             pointer-events:none;
         }
+
         .win-header{
             height:34px;
             background:#ffffff;
@@ -260,7 +264,9 @@
             `;
             document.body.appendChild(win);
             //触发打开动画
-            setTimeout(()=>win.classList.add('active'),10);
+            requestAnimationFrame(()=>{
+                win.classList.add('active');
+            });
 
             //任务栏按钮
             const taskApps=document.getElementById('taskApps');
@@ -270,9 +276,13 @@
             taskBtn.dataset.winid=winId;
             taskBtn.onclick=()=>{
                 if(win.classList.contains('min')){
+                    //恢复窗口：先移除min，再保证active，requestAnimationFrame保证动画执行
                     win.classList.remove('min');
-                    zIndex++;
-                    win.style.zIndex=zIndex;
+                    requestAnimationFrame(()=>{
+                        win.classList.add('active');
+                        zIndex++;
+                        win.style.zIndex=zIndex;
+                    })
                 }else{
                     win.classList.add('min');
                 }
@@ -289,7 +299,7 @@
                 },200);
             };
 
-            //最小化
+            //最小化按钮
             win.querySelector('.win-min').onclick=()=>{
                 win.classList.add('min');
             }
